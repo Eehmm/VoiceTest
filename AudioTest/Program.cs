@@ -6,7 +6,7 @@ AudioWrapper audioTest = new AudioWrapper();
 
 while (exit == false)
 {
-    Console.WriteLine("1. Play\n2. RecordTest\n3. Connect to voice (listen)\n4. Connect to voice (speak)");
+    Console.WriteLine("1. Play\n2. PlayBackTest\n3. Connect to voice (listen only)\n4. Connect to voice (speak only @ 127.0.0.1:7001)\n5. Connect to voice");
 
     while (exit == false)
     {
@@ -20,7 +20,7 @@ while (exit == false)
                 }
             case ConsoleKey.D2:
                 {
-                    audioTest.RecordTest();
+                    audioTest.PlayBackTest();
                     break;
                 }
             case ConsoleKey.D3:
@@ -30,7 +30,13 @@ while (exit == false)
                 }
             case ConsoleKey.D4:
                 {
-                    audioTest.ConnectToVoiceSpeak();
+                    audioTest.ConnectToVoiceSpeak("127.0.0.1", 7001);
+                    break;
+                }
+            case ConsoleKey.D5:
+                {
+                    ConnectToVoicePressed();
+
                     break;
                 }
             case ConsoleKey.Escape:
@@ -43,5 +49,22 @@ while (exit == false)
 
     audioTest.CleanUp();
 
+}
+
+void ConnectToVoicePressed()
+{
+    string listenPort;
+    string remoteIp;
+    string remotePort;
+    Console.Clear();
+    Console.WriteLine("Enter local listen port:");
+    listenPort = Console.ReadLine();
+    Console.WriteLine("Enter remote IP:");
+    remoteIp = Console.ReadLine();
+    Console.WriteLine("Enter remote Port:");
+    remotePort = Console.ReadLine();
+
+    Console.WriteLine("Connecting to voice..");
+    audioTest.ConnectToVoice(remoteIp, remotePort, listenPort);
 }
 

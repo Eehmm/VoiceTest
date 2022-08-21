@@ -12,8 +12,6 @@ namespace AudioTest
     class AudioWrapper
     {
 
-        private WaveFileWriter writer;
-        private BufferedWaveProvider bufferedWaveProvider;
         private IWavePlayer waveOut;
         private WaveInEvent inputDevice;
         private BufferedWaveProvider waveProvider;
@@ -28,6 +26,9 @@ namespace AudioTest
             //waveOut = new WaveOutEvent();
             inputDevice = new WaveInEvent();
             codec = inputDevice.WaveFormat;
+            waveProvider = new BufferedWaveProvider(codec);
+            waveOut = new WaveOutEvent();
+            network = new NetworkWrapper();
         }
 
         public void PlayMP3(string path)
@@ -44,11 +45,11 @@ namespace AudioTest
             }
         }
 
-        public void RecordTest()
+        public void PlayBackTest()
         {
 
-            waveOut = new WaveOutEvent();
-            waveProvider = new BufferedWaveProvider(codec);
+
+
             waveOut.Init(waveProvider);
             waveOut.Play();
 
@@ -58,35 +59,47 @@ namespace AudioTest
 
         }
 
-        public void ConnectToVoiceListen()
+        public void ConnectToVoice(string remoteIp, string remotePort, string listenPort)
         {
-            if (network == null)
-            {
-                waveOut = new WaveOutEvent();
-                waveProvider = new BufferedWaveProvider(codec);
-                waveProvider.BufferDuration = new TimeSpan(0, 0, 1);
-                waveOut.Init(waveProvider);
-                waveOut.Play();
-                network = new NetworkWrapper();
-                ReceiveUdp();
-            }
+
+            network.UdpListenPort = Int32.Parse(listenPort);
+            var port = Int32.Parse(remotePort);
+
+            ConnectToVoiceListen();
+            ConnectToVoiceSpeak(remoteIp, port);
+
         }
 
-        public void ConnectToVoiceSpeak()
+        public void ConnectToVoiceListen()
         {
-            if (network == null)
-            {
-                network = new NetworkWrapper();
-                network.ConnectUdp("127.0.0.1", 7001);
-                inputDevice.StopRecording();
-                inputDevice.StartRecording();
-                inputDevice.DataAvailable += _sendUdp;
-            }
+
+            waveProvider.BufferDuration = new TimeSpan(0, 0, 1);
+            waveOut.Init(waveProvider);
+            waveOut.Play();
+            ReceiveUdp();
+
+        }
+
+        public void ConnectToVoiceSpeak(string remoteIp, int port)
+        {
+
+            network.ConnectUdp(remoteIp, port);
+            inputDevice.StopRecording();
+            inputDevice.StartRecording();
+            inputDevice.DataAvailable += _sendUdp;
+
         }
 
         void _sendUdp(object sender, WaveInEventArgs e)
         {
-            network.udpClient.Send(e.Buffer);
+            try
+            {
+                network.udpClient.Send(e.Buffer);
+            }
+            catch(Exception exc)
+            {
+                Console.WriteLine(exc);
+            }
         }
 
 
@@ -139,6 +152,7 @@ namespace AudioTest
 
         public void CleanUp()
         {
+            network.CleanUp();
             _receivingUdp = false;
             waveOut?.Dispose();
             inputDevice?.Dispose();

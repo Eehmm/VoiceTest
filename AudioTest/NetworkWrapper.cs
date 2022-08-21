@@ -85,6 +85,12 @@ namespace AudioTest
 
         }
 
+        public void CleanUp()
+        {
+            tcpClient?.Close();
+            udpClient?.Close();
+        }
+
         private static byte[] AddSizeHeaderToPackage(byte[] _package)
         {
             //Create a uint containing the length of the package, and encode to byte array
