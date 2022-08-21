@@ -62,13 +62,33 @@ namespace AudioTest
         public void ConnectToVoice(string remoteIp, string remotePort, string listenPort)
         {
 
+
             network.UdpListenPort = Int32.Parse(listenPort);
+            network.TcpListenPort = Int32.Parse(listenPort);
             var port = Int32.Parse(remotePort);
+            StartTcpListener(network.TcpListenPort);
+            Console.WriteLine("Connecting to tcp");
+            while (network.tcpClient == null)
+            {
+                Thread.Sleep(TimeSpan.FromMilliseconds(16.66667));
+                try
+                {
+                    network.tcpClient = new TcpClient(remoteIp, port);
+                }
+                catch
+                {
+                    Console.WriteLine("Retrying tcp connection..");
+                }
+            }
+
+            Console.WriteLine("Tcp connected!");
 
             ConnectToVoiceListen();
             ConnectToVoiceSpeak(remoteIp, port);
 
         }
+
+
 
         public void ConnectToVoiceListen()
         {
@@ -96,10 +116,28 @@ namespace AudioTest
             {
                 network.udpClient.Send(e.Buffer);
             }
-            catch(Exception exc)
+            catch (Exception exc)
             {
                 Console.WriteLine(exc);
             }
+        }
+
+        public void StartTcpListener(int port)
+        {
+            Task t = new Task(() =>
+            {
+            network.tcpListener = new TcpListener(port);
+            network.tcpListener.Start();
+                network.tcpClient = network.tcpListener.AcceptTcpClient();
+            });
+            t.Start();
+        }
+
+        public void ReceiveTcp(TcpClient client)
+        {
+            Task t = new Task(() => _receiveTcp(client));
+            t.Start();
+
         }
 
 
@@ -108,6 +146,14 @@ namespace AudioTest
             Task t = new Task(() => _receiveUdp());
             t.Start();
 
+        }
+
+        private void _receiveTcp(TcpClient client)
+        {
+            while (NetworkWrapper.Connected(client))
+            {
+
+            }
         }
 
         private void _receiveUdp()

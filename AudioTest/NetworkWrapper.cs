@@ -16,9 +16,11 @@ namespace AudioTest
         int udpPort = 6001;
 
         public int UdpListenPort = 7001;
+        public int TcpListenPort = 7001;
 
         public TcpClient tcpClient;
         public UdpClient udpClient;
+        public TcpListener tcpListener;
         IPEndPoint udpEndPoint;
 
         bool connected = false;
@@ -87,6 +89,7 @@ namespace AudioTest
 
         public void CleanUp()
         {
+            tcpListener?.Stop();
             tcpClient?.Close();
             udpClient?.Close();
         }

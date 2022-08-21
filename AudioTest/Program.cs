@@ -65,6 +65,8 @@ void ConnectToVoicePressed()
     remotePort = Console.ReadLine();
 
     Console.WriteLine("Connecting to voice..");
+
+
     audioTest.ConnectToVoice(remoteIp, remotePort, listenPort);
 }
 
